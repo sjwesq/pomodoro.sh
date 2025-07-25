@@ -22,8 +22,12 @@ timer_display () {
     IFS= read -t 1 -n 1 pause # Doubles as a timer using `-t`
     if [ "$pause" != "" ]; then
       clear_line
-      printf '%s %s | paused - press any key to continue...\r' "$label" "$(date -u -d "@$seconds" +%H:%M:%S)"
-      read -n 1 -s
+      printf '%s %s | paused - press "s" to skip or press any key to continue...\r' "$label" "$(date -u -d "@$seconds" +%H:%M:%S)"
+      read -n 1 -s skip
+      if [ "$skip" = 's' ]; then
+        clear_line
+        break
+      fi
       # Prevents the timer from rapidly decrementing with many inputs
       seconds=$(($seconds + 1))
     fi
@@ -64,6 +68,8 @@ while getopts 'hp:b:l:i:c:n:t:' OPTION; do
       printf "Usage: %s [OPTION]...\n" "$0"
       printf "Displays a simple configurable pomodoro timer.\n"
       printf "Example: %s -p 20 -c 2 -n ~/Music/bell.mp3\n\n" "$0"
+
+      printf "  -h\tDisplays this help screen\n\n"
 
       printf "  -p\tLength of (p)omodoros in minutes (default 25)\n"
       printf "  -b\tLength of (b)reaks in minutes (default 5)\n"
