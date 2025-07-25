@@ -4,7 +4,7 @@
 # Function Definitions
 ################################################################################
 clear_line () {
-  printf "                                                                                \r"
+  printf "%80s\r" ""
 }
 
 timer_display () {
@@ -17,12 +17,17 @@ timer_display () {
 
   while [ "$seconds" != 0 ]; do
     clear_line
-    printf '%s %s\r' "$label" "$(date -u -d "@$seconds" +%H:%M:%S)"
+    seconds_formatted="$(date -u -d "@$seconds" +%M:%S)"
+    printf '%s %s\r' "$label" "$seconds_formatted"
 
     IFS= read -t 1 -n 1 pause # Doubles as a timer using `-t`
     if [ "$pause" != "" ]; then
       clear_line
-      printf '%s %s | paused - press "s" to skip or press any key to continue...\r' "$label" "$(date -u -d "@$seconds" +%H:%M:%S)"
+      if [ minimal_mode ]; then
+        printf '%s %s [P]\r' "$label" "$seconds_formatted"
+      else
+        printf '%s %s | paused - press "s" to skip or any key to continue...\r' "$label" "$seconds_formatted"
+      fi
       read -n 1 -s skip
       if [ "$skip" = 's' ]; then
         clear_line
@@ -57,19 +62,22 @@ length_seconds_longbreak=$((20*60))
 
 interval_longbreak=4
 cycle_current=1
+minimal_mode=false
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 sound_notification="$DIR/sounds/notification.mp3"
 sound_timeup="$DIR/sounds/timeup.mp3"
 
-while getopts 'hp:b:l:i:c:n:t:' OPTION; do
+while getopts 'hmp:b:l:i:c:n:t:' OPTION; do
   case "$OPTION" in
     h)
       printf "Usage: %s [OPTION]...\n" "$0"
       printf "Displays a simple configurable pomodoro timer.\n"
       printf "Example: %s -p 20 -c 2 -n ~/Music/bell.mp3\n\n" "$0"
 
-      printf "  -h\tDisplays this help screen\n\n"
+      printf "  -h\tDisplays this (h)elp screen\n\n"
+
+      printf "  -m\tToggles (m)ini mode - designed for small terminals\n\n"
 
       printf "  -p\tLength of (p)omodoros in minutes (default 25)\n"
       printf "  -b\tLength of (b)reaks in minutes (default 5)\n"
@@ -79,8 +87,11 @@ while getopts 'hp:b:l:i:c:n:t:' OPTION; do
       printf "  -i\t(i)nterval for how often long breaks are given (default 4)\n\n"
 
       printf "  -n\tLocation of pomodoro-end (n)otification sound file\n"
-      printf "  -t\tLocation of break (t)ime-up sound file\t"
+      printf "  -t\tLocation of break (t)ime-up sound file\n"
       exit 0
+      ;;
+    m)
+      minimal_mode=true
       ;;
     p)
       # Pomodoro length (minutes)
@@ -122,7 +133,11 @@ done
 
 while :
 do
-  printf 'Press any key to start Pomodoro #%d...\r' $cycle_current
+  if [ minimal_mode ]; then
+    printf 'Pomodoro #%d?\r' $cycle_current
+  else
+    printf 'Press any key to start Pomodoro #%d...\r' $cycle_current
+  fi
   read -n1 -s
   timer_display $length_seconds_pomo "Pomodoro #${cycle_current}"
   play "$sound_notification" &> /dev/null &
@@ -132,7 +147,11 @@ do
   else
     breaklength=$length_seconds_shortbreak
   fi
-  printf 'Press any key to start break...\r'
+  if [ minimal_mode ]; then
+    printf 'Break #%d?\r' $cycle_current
+  else
+    printf 'Press any key to start break...\r'
+  fi
   read -n1 -s
   timer_display $breaklength "Break #${cycle_current}"
   play "$sound_timeup" &> /dev/null &
