@@ -13,9 +13,9 @@ contact me.
 
 Here is the output of `./pomodoro.sh -h`:
 ```
-Usage: ./Projects/pomodoro/pomodoro.sh [OPTION]...
+Usage: ./pomodoro.sh [OPTION]...
 Displays a simple configurable pomodoro timer.
-Example: ./Projects/pomodoro/pomodoro.sh -p 20 -c 2 -n ~/Music/bell.mp3
+Example: ./pomodoro.sh -p 20 -c 2 -n ~/Music/bell.mp3
 
   -h	Displays this help screen
 
