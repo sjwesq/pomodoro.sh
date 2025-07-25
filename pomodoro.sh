@@ -59,8 +59,8 @@ interval_longbreak=4
 cycle_current=1
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-sound_notification="$DIR/notification.mp3"
-sound_timeup="$DIR/timeup.mp3"
+sound_notification="$DIR/sounds/notification.mp3"
+sound_timeup="$DIR/sounds/timeup.mp3"
 
 while getopts 'hp:b:l:i:c:n:t:' OPTION; do
   case "$OPTION" in
