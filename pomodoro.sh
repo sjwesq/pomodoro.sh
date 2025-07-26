@@ -106,7 +106,7 @@ while getopts 'hmp:b:l:i:c:n:t:' OPTION; do
     b)
       # Break length (minutes)
       number_check "$OPTARG"
-      length_seconds_break=$((OPTARG * 60))
+      length_seconds_shortbreak=$((OPTARG * 60))
       ;;
     l)
       # Long break length (minutes)
