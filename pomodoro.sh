@@ -1,34 +1,49 @@
 #!/bin/bash
 
+YELLOW="\e[1;33m"
+RESET="\e[0m"
+
 ################################################################################
 # Function Definitions
 ################################################################################
-clear_line () {
-  printf "%80s\r" ""
+clear_line() {
+  cols="$(tput cols)"
+  printf "%*s\r" "$((cols-1))" ""
+}
+
+wait_for_input () {
+  read -n1 -s $1
 }
 
 timer_display () {
   local seconds=$1
   local label="$2"
 
+  local seconds_formatted
+  local pause
+  local skip
+
+
   if [ "$label" != "" ]; then
     label="${label}:"
   fi
 
-  while [ "$seconds" != 0 ]; do
+  while [ "$seconds" -gt 0 ]; do
     clear_line
-    seconds_formatted="$(date -u -d "@$seconds" +%M:%S)"
+    printf -v seconds_formatted "%02d:%02d" $((seconds / 60)) $((seconds % 60))
     printf '%s %s\r' "$label" "$seconds_formatted"
 
-    IFS= read -t 1 -n 1 pause # Doubles as a timer using `-t`
+    IFS= read -t1 -n1 pause # Doubles as a timer by using `-t`
     if [ "$pause" != "" ]; then
       clear_line
       if [ "$minimal_mode" = true ]; then
-        printf '%s %s [P]\r' "$label" "$seconds_formatted"
+        printf "%s %s ${YELLOW}[P]${RESET}\r" "$label" "$seconds_formatted"
       else
-        printf '%s %s | paused - press "s" to skip or any key to continue...\r' "$label" "$seconds_formatted"
+        printf \
+          '%s %s | paused - press "s" to skip or any key to continue...\r' \
+          "$label" "$seconds_formatted"
       fi
-      read -n 1 -s skip
+      wait_for_input skip
       if [ "$skip" = 's' ]; then
         clear_line
         break
@@ -88,8 +103,10 @@ while getopts 'hmp:b:l:i:c:n:t:' OPTION; do
       printf "  -l\tLength of (l)ong breaks in minutes (default %d)\n\n" \
         $((length_seconds_longbreak/60))
 
-      printf "  -c\tCurrent pomodoro (c)ycle (default %d)\n" $cycle_current
-      printf "  -i\t(i)nterval for how often long breaks are given (default %d)\n\n" \
+      printf "  -c\tCurrent pomodoro (c)ycle (default %d)\n" \
+        $cycle_current
+      printf \
+        "  -i\t(i)nterval for how often long breaks are given (default %d)\n\n"\
         $interval_longbreak
       printf "  -n\tLocation of pomodoro-end (n)otification sound file\n"
       printf "  -t\tLocation of break (t)ime-up sound file\n"
@@ -135,6 +152,10 @@ while getopts 'hmp:b:l:i:c:n:t:' OPTION; do
   esac
 done
 
+command -v play &> /dev/null || {
+  printf "${YELLOW}WARNING${RESET}:"
+  printf "'play' command not found. Install SoX for audio support.\n"
+}
 
 while :
 do
@@ -143,7 +164,7 @@ do
   else
     printf 'Press any key to start Pomodoro #%d...\r' $cycle_current
   fi
-  read -n1 -s
+  wait_for_input
   timer_display $length_seconds_pomo "Pomodoro #${cycle_current}"
   play "$sound_notification" &> /dev/null &
 
@@ -153,11 +174,11 @@ do
     breaklength=$length_seconds_shortbreak
   fi
   if [ "$minimal_mode" = true ]; then
-    printf 'Break #%d?\r' $cycle_current
+    printf "Break #%d?\r" $cycle_current
   else
     printf 'Press any key to start break...\r'
   fi
-  read -n1 -s
+  wait_for_input
   timer_display $breaklength "Break #${cycle_current}"
   play "$sound_timeup" &> /dev/null &
 
