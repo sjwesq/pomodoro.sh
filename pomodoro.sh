@@ -23,7 +23,7 @@ timer_display () {
     IFS= read -t 1 -n 1 pause # Doubles as a timer using `-t`
     if [ "$pause" != "" ]; then
       clear_line
-      if [ minimal_mode ]; then
+      if [ "$minimal_mode" = true ]; then
         printf '%s %s [P]\r' "$label" "$seconds_formatted"
       else
         printf '%s %s | paused - press "s" to skip or any key to continue...\r' "$label" "$seconds_formatted"
@@ -133,7 +133,7 @@ done
 
 while :
 do
-  if [ minimal_mode ]; then
+  if [ "$minimal_mode" = true ]; then
     printf 'Pomodoro #%d?\r' $cycle_current
   else
     printf 'Press any key to start Pomodoro #%d...\r' $cycle_current
@@ -147,7 +147,7 @@ do
   else
     breaklength=$length_seconds_shortbreak
   fi
-  if [ minimal_mode ]; then
+  if [ "$minimal_mode" = true ]; then
     printf 'Break #%d?\r' $cycle_current
   else
     printf 'Press any key to start break...\r'
