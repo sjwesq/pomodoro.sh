@@ -56,6 +56,7 @@ require_file() {
 ################################################################################
 # Script Execution
 ################################################################################
+
 length_seconds_pomo=$((25*60))
 length_seconds_shortbreak=$((5*60))
 length_seconds_longbreak=$((20*60))
@@ -79,13 +80,16 @@ while getopts 'hmp:b:l:i:c:n:t:' OPTION; do
 
       printf "  -m\tToggles (m)ini mode - designed for small terminals\n\n"
 
-      printf "  -p\tLength of (p)omodoros in minutes (default 25)\n"
-      printf "  -b\tLength of (b)reaks in minutes (default 5)\n"
-      printf "  -l\tLength of (l)ong breaks in minutes (default 15)\n\n"
+      printf "  -p\tLength of (p)omodoros in minutes (default %d)\n" \
+        $((length_seconds_pomo/60))
+      printf "  -b\tLength of (b)reaks in minutes (default %d)\n" \
+        $((length_seconds_shortbreak/60))
+      printf "  -l\tLength of (l)ong breaks in minutes (default %d)\n\n" \
+        $((length_seconds_longbreak/60))
 
-      printf "  -c\tCurrent pomodoro (c)ycle (default 1)\n"
-      printf "  -i\t(i)nterval for how often long breaks are given (default 4)\n\n"
-
+      printf "  -c\tCurrent pomodoro (c)ycle (default %d)\n" $cycle_current
+      printf "  -i\t(i)nterval for how often long breaks are given (default %d)\n\n" \
+        $interval_longbreak
       printf "  -n\tLocation of pomodoro-end (n)otification sound file\n"
       printf "  -t\tLocation of break (t)ime-up sound file\n"
       exit 0
