@@ -1,7 +1,9 @@
 #!/bin/bash
 
-YELLOW="\e[1;33m"
-RESET="\e[0m"
+RED=$'\033[31m'
+YELLOW=$'\033[33m'
+CYAN=$'\033[36m'
+RESET=$'\033[0m'
 
 ################################################################################
 # Function Definitions
@@ -85,7 +87,7 @@ DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 sound_notification="$DIR/sounds/notification.mp3"
 sound_timeup="$DIR/sounds/timeup.mp3"
 
-while getopts 'hmp:b:l:i:c:n:t:' OPTION; do
+while getopts 'hmwp:b:l:i:c:n:t:' OPTION; do
   case "$OPTION" in
     h)
       printf "Usage: %s [OPTION]...\n" "$0"
@@ -94,7 +96,10 @@ while getopts 'hmp:b:l:i:c:n:t:' OPTION; do
 
       printf "  -h\tDisplays this (h)elp screen\n\n"
 
-      printf "  -m\tToggles (m)ini mode - designed for small terminals\n\n"
+      printf \
+        "  -m\tToggles (m)ini mode - designed for small terminal windows\n\n"
+
+      printf "  -w\tEnables black-and-(w)hite output mode (disables color)\n\n"
 
       printf "  -p\tLength of (p)omodoros in minutes (default %d)\n" \
         $((length_seconds_pomo/60))
@@ -114,6 +119,12 @@ while getopts 'hmp:b:l:i:c:n:t:' OPTION; do
       ;;
     m)
       minimal_mode=true
+      ;;
+    w)
+      RED=""
+      YELLOW=""
+      CYAN=""
+      RESET=""
       ;;
     p)
       # Pomodoro length (minutes)
@@ -160,12 +171,14 @@ command -v play &> /dev/null || {
 while :
 do
   if [ "$minimal_mode" = true ]; then
-    printf 'Pomodoro #%d?\r' $cycle_current
+    label_current="${RED}PMO${RESET}#"
   else
-    printf 'Press any key to start Pomodoro #%d...\r' $cycle_current
+    printf 'Press any key to start '
+    label_current='Pomodoro #'
   fi
+  printf "%s%d...\r" "$label_current" $cycle_current
   wait_for_input
-  timer_display $length_seconds_pomo "Pomodoro #${cycle_current}"
+  timer_display $length_seconds_pomo "${label_current}${cycle_current}"
   play "$sound_notification" &> /dev/null &
 
   if [ $((cycle_current % interval_longbreak)) = 0 ]; then
@@ -174,12 +187,14 @@ do
     breaklength=$length_seconds_shortbreak
   fi
   if [ "$minimal_mode" = true ]; then
-    printf "Break #%d?\r" $cycle_current
+    label_current="${CYAN}BRK${RESET}#"
   else
-    printf 'Press any key to start break...\r'
+    printf 'Press any key to start '
+    label_current='Break #'
   fi
+  printf '%s%d...\r' "$label_current" $cycle_current
   wait_for_input
-  timer_display $breaklength "Break #${cycle_current}"
+  timer_display $breaklength "${label_current}${cycle_current}"
   play "$sound_timeup" &> /dev/null &
 
   cycle_current=$((cycle_current+1))
