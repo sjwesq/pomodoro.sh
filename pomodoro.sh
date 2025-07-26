@@ -38,6 +38,7 @@ timer_display () {
     fi
     seconds=$(($seconds - 1))
   done
+  clear_line
 }
 
 number_check() {
