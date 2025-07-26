@@ -27,7 +27,7 @@ Example: ./pomodoro.sh -p 20 -c 2 -n ~/Music/bell.mp3
 
   -p	Length of (p)omodoros in minutes (default 25)
   -b	Length of (b)reaks in minutes (default 5)
-  -l	Length of (l)ong breaks in minutes (default 15)
+  -l	Length of (l)ong breaks in minutes (default 20)
 
   -c	Current pomodoro (c)ycle (default 1)
   -i	(i)nterval for how often long breaks are given (default 4)
