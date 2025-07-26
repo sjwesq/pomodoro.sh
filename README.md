@@ -7,7 +7,9 @@ key.) It uses `play` from the `sox` package in order to play notification sounds
 at the end of each time interval, therefore `sox` can be considered to be
 required.
 
-You can comfortably scale it down to
+You can comfortably scale it down to small sizes, but you'll want to use the
+`-m` flag for anything under 80 columns. Generally, under 80 columns is not
+really defined properly, but I had good results when I tried it.
 
 Two sound files are included -- I downloaded them from a royalty-free sound
 site. I don't own them. If you are the owner and this is problematic, please
