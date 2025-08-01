@@ -60,20 +60,16 @@ timer_display () {
 
 number_check() {
   if ! [[ "$1" =~ ^[0-9]+$ ]]; then
-    echo "${RED}ERROR${RESET}: '$1' is not a valid number." >&2
+    printf "${RED}ERROR${RESET}: '$1' is not a valid number.\n"
     exit 1
   fi
 }
-require_file() {
-  if [[ ! -f "$1" ]]; then
-    echo "${RED}ERROR${RESET}: '$1' is not a valid file." >&2
-    exit 1
-  fi
-}
+
 require_audio() {
-  local output=$(file -i "$1" | grep -i 'audio')
-  if [ "$output" = "" ]; then
-    echo "${RED}ERROR${RESET}: '$1' is not an audio file." >&2
+  soxi "$1" &>/dev/null
+  if [ "$?" = 1 ]; then
+    printf "${RED}ERROR${RESET}: '$1' is not a supported audio file.\n"
+    printf "See \`play -h\` for a list of supported formats.\n"
     exit 1
   fi
 }
@@ -160,12 +156,10 @@ while getopts 'hmwp:b:l:i:c:n:t:' OPTION; do
       ;;
     n)
       # Notification sound
-      require_file "$OPTARG"
       require_audio "$OPTARG"
       sound_notification="$OPTARG"
       ;;
     t)
-      require_file "$OPTARG"
       require_audio "$OPTARG"
       sound_timeup="$OPTARG"
       ;;
