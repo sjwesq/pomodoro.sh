@@ -25,20 +25,15 @@ timer_display () {
   local pause
   local skip
 
-
-  if [ "$label" != "" ]; then
-    label="${label}:"
-  fi
-
   while [ "$seconds" -gt 0 ]; do
     clear_line
     printf -v seconds_formatted "%02d:%02d" $((seconds / 60)) $((seconds % 60))
     printf '%s %s\r' "$label" "$seconds_formatted"
 
     IFS= read -t1 -n1 pause # Doubles as a timer by using `-t`
-    if [ "$pause" != "" ]; then
+    if [[ "$pause" != "" ]]; then
       clear_line
-      if [ "$minimal_mode" = true ]; then
+      if [[ "$minimal_mode" ]]; then
         printf "%s %s ${YELLOW}[P]${RESET}\r" "$label" "$seconds_formatted"
       else
         printf \
@@ -46,7 +41,7 @@ timer_display () {
           "$label" "$seconds_formatted"
       fi
       wait_for_input skip
-      if [ "$skip" = 's' ]; then
+      if [[ "$skip" = 's' ]]; then
         clear_line
         break
       fi
@@ -67,7 +62,7 @@ number_check() {
 
 require_audio() {
   soxi "$1" &>/dev/null
-  if [ "$?" = 1 ]; then
+  if [[ "$?" != 0 ]]; then
     printf "${RED}ERROR${RESET}: '$1' is not a supported audio file.\n"
     printf "See \`play -h\` for a list of supported formats.\n"
     exit 1
@@ -88,7 +83,9 @@ minimal_mode=false
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 sound_notification="$DIR/sounds/notification.mp3"
+require_audio "$sound_notification"
 sound_timeup="$DIR/sounds/timeup.mp3"
+require_audio "$sound_timeup"
 
 while getopts 'hmwp:b:l:i:c:n:t:' OPTION; do
   case "$OPTION" in
@@ -173,7 +170,7 @@ command -v play &> /dev/null || {
 
 while :
 do
-  if [ "$minimal_mode" = true ]; then
+  if [[ "$minimal_mode" = true ]]; then
     label_current="${RED}PMO${RESET}#"
   else
     printf 'Press any key to start '
@@ -184,12 +181,12 @@ do
   timer_display $length_seconds_pomo "${label_current}${cycle_current}"
   play "$sound_notification" &> /dev/null &
 
-  if [ $((cycle_current % interval_longbreak)) = 0 ]; then
+  if [[ $((cycle_current % interval_longbreak)) = 0 ]]; then
     breaklength=$length_seconds_longbreak
   else
     breaklength=$length_seconds_shortbreak
   fi
-  if [ "$minimal_mode" = true ]; then
+  if [[ "$minimal_mode" = true ]]; then
     label_current="${CYAN}BRK${RESET}#"
   else
     printf 'Press any key to start '
