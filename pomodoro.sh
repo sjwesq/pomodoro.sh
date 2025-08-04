@@ -9,7 +9,7 @@ RESET=$'\033[0m'
 # Function Definitions
 ################################################################################
 clear_line() {
-  cols="$(tput cols)"
+  local cols="$(tput cols)"
   printf "%*s\r" "$((cols - 1))" ""
 }
 
@@ -61,8 +61,7 @@ number_check() {
 }
 
 require_audio() {
-  soxi "$1" &>/dev/null
-  if [[ $? != 0 ]]; then
+  if ! soxi "$1" &>/dev/null; then
     printf "${RED}ERROR${RESET}: '$1' is not a supported audio file.\n"
     printf "See \`play -h\` for a list of supported formats.\n"
     exit 1
