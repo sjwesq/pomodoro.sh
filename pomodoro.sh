@@ -47,6 +47,7 @@ timer_display() {
       fi
       # Prevents the timer from rapidly decrementing with many inputs
       seconds=$((seconds + 1))
+      pause=""
     fi
     seconds=$((seconds - 1))
   done
