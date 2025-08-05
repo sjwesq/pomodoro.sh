@@ -25,6 +25,9 @@ timer_display() {
   local pause
   local skip
 
+  printf "%s%d...\r" "$label_current" $cycle_current
+  wait_for_input
+
   while [[ $seconds > 0 ]]; do
     clear_line
     printf -v seconds_formatted "%02d:%02d" $((seconds / 60)) $((seconds % 60))
@@ -52,9 +55,17 @@ timer_display() {
     seconds=$((seconds - 1))
   done
   clear_line
+  if availability_sox; then
+    play "$3" &>/dev/null &
+  fi
 }
 
-number_check() {
+availability_sox() {
+  command -v play &>/dev/null || return 1
+  return 0
+}
+
+require_number() {
   if ! [[ $1 =~ ^[0-9]+$ ]]; then
     printf "${RED}ERROR${RESET}: '$1' is not a valid number.\n"
     exit 1
@@ -62,10 +73,12 @@ number_check() {
 }
 
 require_audio() {
-  if ! soxi "$1" &>/dev/null; then
-    printf "${RED}ERROR${RESET}: '$1' is not a supported audio file.\n"
-    printf "See \`play -h\` for a list of supported formats.\n"
-    exit 1
+  if availability_sox; then
+    if ! soxi "$1" &>/dev/null; then
+      printf "${RED}ERROR${RESET}: '$1' is not a supported audio file.\n"
+      printf "See \`play -h\` for a list of supported formats.\n"
+      exit 1
+    fi
   fi
 }
 
@@ -128,27 +141,27 @@ while getopts 'hmwp:b:l:i:c:n:t:' OPTION; do
       ;;
     p)
       # Pomodoro length (minutes)
-      number_check "$OPTARG"
+      require_number "$OPTARG"
       length_seconds_pomo=$((OPTARG * 60))
       ;;
     b)
       # Break length (minutes)
-      number_check "$OPTARG"
+      require_number "$OPTARG"
       length_seconds_shortbreak=$((OPTARG * 60))
       ;;
     l)
       # Long break length (minutes)
-      number_check "$OPTARG"
+      require_number "$OPTARG"
       length_seconds_longbreak=$((OPTARG * 60))
       ;;
     i)
       # Long break interval
-      number_check "$OPTARG"
+      require_number "$OPTARG"
       interval_longbreak=$((OPTARG))
       ;;
     c)
       # Current cycle
-      number_check "$OPTARG"
+      require_number "$OPTARG"
       cycle_current=$((OPTARG))
       ;;
     n)
@@ -163,10 +176,10 @@ while getopts 'hmwp:b:l:i:c:n:t:' OPTION; do
   esac
 done
 
-command -v play &>/dev/null || {
+if ! availability_sox; then
   printf "${YELLOW}WARNING${RESET}:"
   printf "'play' command not found. Install SoX for audio support.\n"
-}
+fi
 
 while true; do
   if [[ $minimal_mode == true ]]; then
@@ -175,10 +188,8 @@ while true; do
     printf 'Press any key to start '
     label_current='Pomodoro #'
   fi
-  printf "%s%d...\r" "$label_current" $cycle_current
-  wait_for_input
-  timer_display $length_seconds_pomo "${label_current}${cycle_current}"
-  play "$sound_notification" &>/dev/null &
+
+  timer_display $length_seconds_pomo "${label_current}${cycle_current}" "$sound_notification"
 
   if [[ $((cycle_current % interval_longbreak)) == 0 ]]; then
     breaklength=$length_seconds_longbreak
@@ -191,10 +202,7 @@ while true; do
     printf 'Press any key to start '
     label_current='Break #'
   fi
-  printf '%s%d...\r' "$label_current" $cycle_current
-  wait_for_input
-  timer_display $breaklength "${label_current}${cycle_current}"
-  play "$sound_timeup" &>/dev/null &
+  timer_display $breaklength "${label_current}${cycle_current}" "$sound_timeup"
 
   cycle_current=$((cycle_current + 1))
 done
